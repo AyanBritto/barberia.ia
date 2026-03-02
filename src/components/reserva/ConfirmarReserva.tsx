@@ -1,6 +1,13 @@
 import React, { useState } from "react";
 
-export default function ConfirmarReserva({ reserva, onConfirm, onBack }: { reserva: any; onConfirm: () => void; onBack: () => void }) {
+interface ReservaType {
+  barbero?: { nombre: string };
+  servicio?: { nombre: string };
+  horario: string;
+  cliente: { nombre: string; cedula: string; celular: string };
+}
+
+export default function ConfirmarReserva({ reserva, onConfirm, onBack }: { reserva: ReservaType; onConfirm: () => void; onBack: () => void }) {
   const [cliente, setCliente] = useState(reserva.cliente);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -15,9 +22,9 @@ export default function ConfirmarReserva({ reserva, onConfirm, onBack }: { reser
       <p><b>Horario:</b> {reserva.horario}</p>
 
       <div className="mt-4 space-y-2">
-        <input name="nombre" placeholder="Nombre" value={cliente.nombre} onChange={handleChange} className="border p-2 w-full rounded"/>
-        <input name="cedula" placeholder="Cédula" value={cliente.cedula} onChange={handleChange} className="border p-2 w-full rounded"/>
-        <input name="celular" placeholder="Celular" value={cliente.celular} onChange={handleChange} className="border p-2 w-full rounded"/>
+        <input name="nombre" placeholder="Nombre" value={cliente.nombre} onChange={handleChange} className="border p-2 w-full rounded" />
+        <input name="cedula" placeholder="Cédula" value={cliente.cedula} onChange={handleChange} className="border p-2 w-full rounded" />
+        <input name="celular" placeholder="Celular" value={cliente.celular} onChange={handleChange} className="border p-2 w-full rounded" />
       </div>
 
       <div className="mt-4 flex space-x-3">

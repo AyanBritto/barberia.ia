@@ -1,0 +1,6 @@
+src/components/reserva/CalendarioReserva.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/reserva/ElegirBarbero.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/reserva/ElegirServicio.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/reserva/index.tsx(2,8): error TS6133: 'React' is declared but its value is never read.
+src/components/reserva/SeleccionarHorario.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/SubirFotos.tsx(149,61): error TS18048: 'file.name.length' is possibly 'undefined'.

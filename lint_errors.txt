@@ -1,0 +1,26 @@
+
+> barberia-ia@0.0.0 lint
+> eslint .
+
+
+C:\Users\zarac\OneDrive\Desktop\barberia-ia\src\components\SubirFotos.tsx
+  12:14  error  'uploadLoading' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  30:9   error  'onUploadClick' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\zarac\OneDrive\Desktop\barberia-ia\src\components\reserva\ConfirmarReserva.tsx
+  3:85  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\zarac\OneDrive\Desktop\barberia-ia\src\hooks\useAuth.ts
+  7:36  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\zarac\OneDrive\Desktop\barberia-ia\src\pages\Historial.tsx
+  9:50  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\zarac\OneDrive\Desktop\barberia-ia\src\pages\iniciarsesion.tsx
+  26:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\zarac\OneDrive\Desktop\barberia-ia\src\service\firebase.ts
+  22:14  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+✖ 7 problems (7 errors, 0 warnings)
+

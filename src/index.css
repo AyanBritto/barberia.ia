@@ -1,5 +1,66 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-@import "@fullcalendar/daygrid/main.css";
-@import "@fullcalendar/timegrid/main.css";
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-gold: #d4af37;
+  --color-gold-hover: #b4941f;
+  --color-black-rich: #121212;
+  --color-charcoal: #1e1e1e;
+  --color-gray-text: #a0a0a0;
+  --color-off-white: #e0e0e0;
+  --color-white: #ffffff;
+
+  --font-playfair: 'Playfair Display', serif;
+  --font-montserrat: 'Montserrat', sans-serif;
+
+  --shadow-gold: 0 4px 20px -5px rgba(212, 175, 55, 0.3);
+}
+
+@layer base {
+  body {
+    font-family: var(--font-montserrat);
+    background-color: var(--color-black-rich);
+    color: var(--color-off-white);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-playfair);
+  }
+}
+
+.bg-beige {
+  background-color: #f5f0e6;
+}
+
+.text-red-barber {
+  color: #b71c1c;
+}
+
+/* Fuerza que las imágenes de preview no crezcan sin control */
+.subir-foto-preview img {
+  max-width: 100% !important;
+  height: auto !important;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}

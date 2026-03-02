@@ -1,5 +1,5 @@
 // src/components/reserva/index.tsx
-import React, { useState } from "react";
+import { useState } from "react";
 import ElegirBarbero from "./ElegirBarbero";
 import ElegirServicio from "./ElegirServicio";
 import CalendarioReserva from "./CalendarioReserva";
