@@ -1,137 +1,301 @@
 import { motion } from "framer-motion";
 import { barbers } from "../../../data/mockData";
 import { Clock, ChevronRight, ChevronLeft } from "lucide-react";
+import { useAuth } from "../../../hooks/useAuth";
+import { getReservasPorFecha } from "../../../service/reservaService";
+import { useEffect, useState } from "react";
 
 interface Props {
-    bookingData: any;
-    setBookingData: (val: any) => void;
-    onNext: () => void;
-    onBack: () => void;
+bookingData: any;
+setBookingData: (val: any) => void;
+onNext: () => void;
+onBack: () => void;
 }
 
-export default function Step3_DateTime({ bookingData, setBookingData, onNext, onBack }: Props) {
-    const timeSlots = ["09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"];
+export default function Step3_DateTime({ bookingData, setBookingData, onNext, onBack }: Props){
 
-    const handleBarberSelect = (barber: any) => {
-        setBookingData((prev: any) => ({
-            ...prev,
-            appointment: { ...prev.appointment, barber }
-        }));
-    };
+const { user } = useAuth();
 
-    const handleTimeSelect = (time: string) => {
-        setBookingData((prev: any) => ({
-            ...prev,
-            appointment: { ...prev.appointment, time, date: new Date().toISOString().split('T')[0] }
-        }));
-    };
+const timeSlots = [
+"09:00",
+"10:00",
+"11:00",
+"13:00",
+"14:00",
+"15:00",
+"16:00",
+"17:00",
+"18:00"
+];
 
-    return (
-        <div className="space-y-12 animate-fade-in max-w-4xl mx-auto">
+const [reservedTimes,setReservedTimes] = useState<string[]>([]);
 
-            {/* Barber Selection */}
-            <section>
-                <div className="text-center mb-8">
-                    <h2 className="text-2xl font-bold text-[#D4AF37] mb-2 font-serif">Selecciona tu Profesional</h2>
-                    <p className="text-gray-400">Expertos en estilo clásico y moderno.</p>
-                </div>
+// FECHA LOCAL
+const today = new Date();
+const year = today.getFullYear();
+const month = String(today.getMonth()+1).padStart(2,'0');
+const day = String(today.getDate()).padStart(2,'0');
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                    {barbers.map((b) => {
-                        const isSelected = bookingData.appointment.barber?.id === b.id;
-                        return (
-                            <motion.div
-                                key={b.id}
-                                onClick={() => handleBarberSelect(b)}
-                                whileHover={{ y: -5 }}
-                                className={`
-                  cursor-pointer rounded-2xl overflow-hidden border-2 transition-all duration-300 group relative bg-[#1e1e1e]
-                  ${isSelected ? "border-[#D4AF37] shadow-[0_10px_30px_rgba(212,175,55,0.15)] ring-2 ring-[#D4AF37]/50" : "border-transparent border-white/5 hover:border-[#D4AF37]/30"}
-                `}
-                            >
-                                <div className="h-64 overflow-hidden relative">
-                                    <img
-                                        src={b.img}
-                                        alt={b.name}
-                                        className={`w-full h-full object-cover transition-transform duration-700 ${isSelected ? "scale-110 grayscale-0" : "grayscale group-hover:grayscale-0 group-hover:scale-105"}`}
-                                    />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-[#1e1e1e] to-transparent opacity-80"></div>
-                                </div>
+const localDate = `${year}-${month}-${day}`;
 
-                                <div className="absolute bottom-0 left-0 w-full p-6 text-center">
-                                    <h3 className={`font-bold text-xl mb-1 ${isSelected ? "text-white" : "text-gray-300 group-hover:text-white"}`}>{b.name}</h3>
-                                    <p className="text-[#D4AF37] text-xs uppercase tracking-widest font-bold">Master Barber</p>
-                                </div>
 
-                                {isSelected && (
-                                    <div className="absolute top-4 right-4 bg-[#D4AF37] text-black w-8 h-8 rounded-full flex items-center justify-center font-bold shadow-lg">
-                                        ✓
-                                    </div>
-                                )}
-                            </motion.div>
-                        );
-                    })}
-                </div>
-            </section>
+// 🔥 CARGAR RESERVAS
+useEffect(()=>{
 
-            {/* Time Selection */}
-            {bookingData.appointment.barber && (
-                <motion.section
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                    className="border-t border-white/10 pt-10"
-                >
-                    <div className="text-center mb-8">
-                        <h2 className="text-2xl font-bold text-[#D4AF37] mb-2 font-serif flex items-center justify-center gap-3">
-                            <Clock className="text-[#D4AF37]" /> Disponibilidad
-                        </h2>
-                        <p className="text-gray-400">Horarios disponibles para hoy.</p>
-                    </div>
+const cargarReservas = async ()=>{
 
-                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 max-w-2xl mx-auto px-4">
-                        {timeSlots.map((time) => {
-                            const isSelected = bookingData.appointment.time === time;
-                            return (
-                                <button
-                                    key={time}
-                                    onClick={() => handleTimeSelect(time)}
-                                    className={`
-                    py-4 px-6 rounded-xl font-mono font-bold border transition-all duration-200 relative overflow-hidden group min-h-[60px] flex items-center justify-center
-                    ${isSelected
-                                            ? "bg-[#D4AF37] text-black border-[#D4AF37] shadow-[0_0_15px_rgba(212,175,55,0.4)] transform scale-105 z-10"
-                                            : "bg-[#252525] text-gray-400 border-white/5 hover:border-[#D4AF37]/50 hover:text-white hover:bg-[#2a2a2a]"}
-                  `}
-                                >
-                                    {time}
-                                </button>
-                            );
-                        })}
-                    </div>
-                </motion.section>
-            )}
+try{
 
-            {/* Navigation */}
-            <div className="flex justify-between mt-12 pt-6 border-t border-white/5">
-                <button
-                    onClick={onBack}
-                    className="text-gray-500 hover:text-white px-8 py-4 font-medium transition-colors flex items-center gap-2 group min-h-[50px]"
-                >
-                    <ChevronLeft size={24} className="group-hover:-translate-x-1 transition-transform" /> Atrás
-                </button>
-                <button
-                    onClick={onNext}
-                    disabled={!bookingData.appointment.time}
-                    className={`
-            px-12 py-5 rounded-full font-bold uppercase tracking-widest text-sm transition-all duration-300 flex items-center gap-2 min-h-[60px]
-            ${bookingData.appointment.time
-                            ? "bg-[#D4AF37] text-[#121212] hover:bg-[#FFD700] hover:shadow-[0_0_20px_rgba(212,175,55,0.5)] transform hover:-translate-y-1"
-                            : "bg-[#2a2a2a] text-gray-600 cursor-not-allowed"}
-          `}
-                >
-                    Siguiente <ChevronRight size={20} />
-                </button>
-            </div>
-        </div>
-    );
+if(!bookingData.appointment?.barber) return;
+
+const reservas = await getReservasPorFecha(
+localDate,
+bookingData.appointment.barber.name
+);
+
+const ocupados = reservas
+.filter((r:any)=> r.status==="confirmada")
+.map((r:any)=> r.horario);
+
+setReservedTimes(ocupados);
+
+}catch(error){
+
+console.error("Error cargando reservas",error);
+
+}
+
+};
+
+cargarReservas();
+
+},[bookingData.appointment?.barber]);
+
+
+const handleBarberSelect = (barber:any)=>{
+
+setBookingData((prev:any)=>({
+...prev,
+appointment:{
+...prev.appointment,
+barber
+}
+}));
+
+};
+
+
+const handleTimeSelect = (time:string)=>{
+
+setBookingData((prev:any)=>({
+...prev,
+appointment:{
+...prev.appointment,
+time,
+date:localDate
+}
+}));
+
+};
+
+
+const getInitial = ()=>{
+if(user?.displayName) return user.displayName[0]?.toUpperCase() || '?';
+if(user?.email) return user.email.split('@')[0][0]?.toUpperCase() || '?';
+return '?';
+};
+
+
+return(
+
+<div className="space-y-10 md:space-y-12 animate-fade-in max-w-4xl mx-auto px-2">
+
+
+{/* BARBEROS */}
+
+<section>
+
+<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+
+<div>
+
+<h2 className="text-xl md:text-2xl font-bold text-[#D4AF37] font-serif">
+Selecciona tu Profesional
+</h2>
+
+<p className="text-gray-400">
+Expertos en estilo clásico y moderno.
+</p>
+
+</div>
+
+{user && (
+
+<div>
+
+{user.photoURL ? (
+
+<img
+src={user.photoURL}
+className="w-10 h-10 rounded-full border-2 border-[#D4AF37]"
+/>
+
+):(
+
+<div className="w-10 h-10 rounded-full bg-[#D4AF37] text-black flex items-center justify-center font-bold">
+{getInitial()}
+</div>
+
+)}
+
+</div>
+
+)}
+
+</div>
+
+
+<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+
+{barbers.map((b)=>{
+
+const isSelected = bookingData.appointment?.barber?.id===b.id;
+
+return(
+
+<motion.div
+key={b.id}
+onClick={()=>handleBarberSelect(b)}
+whileHover={{y:-5}}
+className={`cursor-pointer rounded-xl overflow-hidden border-2 bg-[#1e1e1e]
+
+${isSelected
+?"border-[#D4AF37]"
+:"border-white/5 hover:border-[#D4AF37]/40"}`}
+>
+
+<img
+src={b.img}
+className="w-full h-48 md:h-64 object-cover"
+/>
+
+<div className="p-4 text-center">
+
+<h3 className="text-white font-bold">
+{b.name}
+</h3>
+
+<p className="text-[#D4AF37] text-xs">
+Master Barber
+</p>
+
+</div>
+
+</motion.div>
+
+);
+
+})}
+
+</div>
+
+</section>
+
+
+{/* HORARIOS */}
+
+{bookingData.appointment?.barber &&(
+
+<section className="border-t border-white/10 pt-10">
+
+<div className="text-center mb-8">
+
+<h2 className="text-2xl font-bold text-[#D4AF37] flex justify-center gap-2">
+
+<Clock/>
+
+Disponibilidad
+
+</h2>
+
+</div>
+
+
+<div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 max-w-2xl mx-auto">
+
+{timeSlots.map((time)=>{
+
+const isReserved = reservedTimes.includes(time);
+const isSelected = bookingData.appointment?.time===time;
+
+return(
+
+<button
+key={time}
+onClick={()=>!isReserved && handleTimeSelect(time)}
+disabled={isReserved}
+className={`py-2 md:py-3 rounded-xl font-bold border text-sm md:text-base
+
+${isReserved
+?"bg-red-900 text-red-400 border-red-700"
+:isSelected
+?"bg-[#D4AF37] text-black border-[#D4AF37]"
+:"bg-[#252525] text-gray-400 border-white/5 hover:border-[#D4AF37]"}
+`}
+>
+
+{isReserved ? "Ocupado" : time}
+
+</button>
+
+);
+
+})}
+
+</div>
+
+</section>
+
+)}
+
+
+{/* BOTONES */}
+
+<div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-10 border-t border-white/5">
+
+<button
+onClick={onBack}
+className="text-gray-500 flex items-center gap-2"
+>
+
+<ChevronLeft/>
+
+Atrás
+
+</button>
+
+
+<button
+onClick={onNext}
+disabled={!bookingData.appointment?.time}
+className={`px-8 md:px-10 py-3 md:py-4 rounded-full font-bold
+
+${bookingData.appointment?.time
+?"bg-[#D4AF37] text-black"
+:"bg-gray-800 text-gray-500"}`}
+
+>
+
+Siguiente
+
+<ChevronRight/>
+
+</button>
+
+</div>
+
+</div>
+
+);
+
 }

@@ -1,0 +1,18 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Permite al usuario eliminar sus propias fotos en /users/{uid}/photos/
+    match /users/{userId}/photos/{fileName} {
+      allow delete: if request.auth != null && request.auth.uid == userId;
+    }
+    // Permite subir fotos (si usas upload)
+    match /users/{userId}/photos/{fileName} {
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    // Para cualquier otra ruta (opcional)
+    match /{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+  }
+}

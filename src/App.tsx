@@ -40,10 +40,17 @@ export default function App() {
 
   // Loader componente
   const LoadingScreen = () => (
+<<<<<<< HEAD
     <div className="min-h-screen bg-black-rich flex items-center justify-center">
       <div className="text-center">
         <div className="w-12 h-12 border-4 border-gold border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
         <p className="text-gold">Cargando...</p>
+=======
+    <div className="min-h-screen bg-black-rich flex items-center justify-center px-4">
+      <div className="text-center">
+       <div className="w-10 h-10 md:w-12 md:h-12 border-4 border-gold border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+        <p className="text-gold text-sm md:text-base">Cargando...</p>
+>>>>>>> 21d5d75 (cambios en admin y web responsive)
       </div>
     </div>
   );
@@ -52,11 +59,19 @@ export default function App() {
     return <LoadingScreen />;
   }
 
+<<<<<<< HEAD
   // ✅ NUEVA FUNCIÓN: Proteger rutas de cliente (bloquear admins)
   const ClientOnlyRoute = ({ children }: { children: ReactNode }) => {
     const { isAdmin, loading } = useAuth();
     
     if (loading) return <div>Cargando...</div>;
+=======
+  // Proteger rutas de cliente (bloquear admins)
+  const ClientOnlyRoute = ({ children }: { children: ReactNode }) => {
+    const { isAdmin, loading } = useAuth();
+    
+    if (loading) return <LoadingScreen />;
+>>>>>>> 21d5d75 (cambios en admin y web responsive)
     if (isAdmin) return <Navigate to="/admin" replace />;
     
     return <>{children}</>;
@@ -64,15 +79,27 @@ export default function App() {
 
   return (
     <Router>
+<<<<<<< HEAD
       <Suspense fallback={<LoadingScreen />}>
+=======
+        <Suspense fallback={<LoadingScreen />}>
+    <div className="min-h-screen w-full bg-black-rich text-white">
+>>>>>>> 21d5d75 (cambios en admin y web responsive)
         <Routes>
           {/* Ruta pública: página de bienvenida */}
           <Route path="/" element={<Bienvenida />} />
 
+<<<<<<< HEAD
           {/* Ruta de login: accesible solo si no hay usuario */}
           <Route
             path="/iniciarsesion"
             element={user ? <Navigate to="/reserva" /> : <IniciarSesion />}
+=======
+          {/* ✅ CORREGIDO: Redirigir a "/" si ya está logueado */}
+          <Route
+            path="/iniciarsesion"
+            element={user ? <Navigate to="/" replace /> : <IniciarSesion />}
+>>>>>>> 21d5d75 (cambios en admin y web responsive)
           />
           
           {/* Ruta de admin */}
@@ -122,7 +149,12 @@ export default function App() {
           {/* Redirección por defecto */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
+<<<<<<< HEAD
+=======
+      </div>
+>>>>>>> 21d5d75 (cambios en admin y web responsive)
       </Suspense>
     </Router>
+    
   );
 }

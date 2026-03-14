@@ -1,0 +1,16 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Permite al usuario eliminar sus propias reservas y sugerencias
+    match /reservas/{docId} {
+      allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+    match /sugerencias/{docId} {
+      allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+    // Permite lectura/escritura básicas para autenticados (ajusta según necesites)
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}

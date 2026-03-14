@@ -1,4 +1,14 @@
 {
+<<<<<<< HEAD
+=======
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  },
+>>>>>>> 21d5d75 (cambios en admin y web responsive)
   "functions": {
     "source": "functions",
     "ignore": [
