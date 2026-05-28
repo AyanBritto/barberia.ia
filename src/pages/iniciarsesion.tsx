@@ -18,7 +18,7 @@ export default function IniciarSesion() {
   // Si ya está logueado, redirigir a Bienvenida
   useEffect(() => {
     if (!authLoading && user) {
-      navigate("/");
+      
     }
   }, [user, authLoading, navigate]);
 
@@ -44,7 +44,8 @@ export default function IniciarSesion() {
     }
   };
 
-<<<<<<< HEAD
+
+ 
   return (
     <div className="min-h-screen bg-beige flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl border-2 border-gold p-8 max-w-md w-full">
@@ -87,7 +88,7 @@ export default function IniciarSesion() {
 
         <p className="text-center text-xs text-gray-500 mt-6">
           Solo usamos tu cuenta para personalizar tus sugerencias.
-=======
+
   const handleGoogleLogin = async () => {
     setLoading(true);
     try {
@@ -104,8 +105,37 @@ export default function IniciarSesion() {
       alert("No se pudo iniciar sesión con Google. Intenta nuevamente.");
     } finally {
       setLoading(false);
+const handleGoogleLogin = async () => {
+  setLoading(true);
+
+  try {
+    const provider = new GoogleAuthProvider();
+
+    const result = await signInWithPopup(auth, provider);
+
+    const firebaseUser = result.user;
+
+    if (!firebaseUser) {
+      console.error("No se obtuvo usuario");
+      return;
+
     }
-  };
+
+   await setDoc(doc(db, "usuarios", firebaseUser.uid), {
+  nombre: firebaseUser.displayName || "",
+  email: firebaseUser.email,
+  createdAt: new Date()
+}, { merge: true });
+
+    
+
+  } catch (error: any) {
+    console.error("Error con Google:", error);
+    alert("No se pudo iniciar sesión con Google. Intenta nuevamente.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   if (authLoading) {
     return (
@@ -174,7 +204,7 @@ export default function IniciarSesion() {
 
         <p className="text-center text-gray-500 text-sm mt-8">
           ¿Nuevo? Solo necesitas iniciar sesión para reservar.
->>>>>>> 21d5d75 (cambios en admin y web responsive)
+
         </p>
       </div>
     </div>

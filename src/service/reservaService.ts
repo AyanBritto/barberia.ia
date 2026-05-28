@@ -19,6 +19,7 @@ try{
 
 await addDoc(collection(db,"reservas"),{
 ...data,
+status:"confirmada", // estado inicial
 createdAt:new Date()
 });
 
@@ -80,7 +81,6 @@ return [];
 };
 
 
-
 // RESERVAS POR FECHA Y BARBERO
 export const getReservasPorFecha = async (fecha:string, barbero:string) => {
 
@@ -109,7 +109,7 @@ return [];
 };
 
 
-// CANCELAR RESERVA
+// CANCELAR RESERVA POR CLIENTE
 export const cancelarReserva = async (id:string) => {
 
 try{
@@ -117,7 +117,7 @@ try{
 const ref = doc(db,"reservas",id);
 
 await updateDoc(ref,{
-status:"cancelada"
+status:"cancelada_cliente"
 });
 
 }catch(error){
@@ -129,7 +129,27 @@ console.error("Error cancelando reserva",error);
 };
 
 
-// ELIMINAR RESERVA
+// CANCELAR RESERVA POR ADMIN
+export const cancelarReservaAdmin = async (id:string) => {
+
+try{
+
+const ref = doc(db,"reservas",id);
+
+await updateDoc(ref,{
+status:"cancelada_admin"
+});
+
+}catch(error){
+
+console.error("Error cancelando reserva por admin",error);
+
+}
+
+};
+
+
+// ELIMINAR RESERVA (solo si alguna vez lo necesitas)
 export const eliminarReserva = async (id:string) => {
 
 try{

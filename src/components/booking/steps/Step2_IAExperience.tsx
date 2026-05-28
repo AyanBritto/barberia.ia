@@ -1,21 +1,14 @@
 import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom"; // ✅ Importado
+import { useNavigate } from "react-router-dom"; 
 import { motion } from "framer-motion";
 import { aiSuggestions } from "../../../data/mockData";
 import { Camera as CameraIcon, RefreshCw, Zap, ScanFace } from "lucide-react";
 import { useAuth } from "../../../hooks/useAuth";
-<<<<<<< HEAD
-import { storage, db, auth } from "../../../service/firebase"; // ✅ Añade auth
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { collection, addDoc } from "firebase/firestore";
-import { Timestamp } from "firebase/firestore";
-=======
 import { storage, db } from "../../../service/firebase";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { collection, addDoc } from "firebase/firestore";
 import { Timestamp } from "firebase/firestore";
 import { getIAStatus } from "../../../service/configService";
->>>>>>> 21d5d75 (cambios en admin y web responsive)
 
 interface Props {
     bookingData: any;
@@ -25,18 +18,6 @@ interface Props {
 }
 
 export default function Step2_IAExperience({ bookingData, setBookingData, onNext, onBack }: Props) {
-<<<<<<< HEAD
-    const { user } = useAuth();
-    
-    const videoRef = useRef<HTMLVideoElement>(null);
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    const [stream, setStream] = useState<MediaStream | null>(null);
-    const [image, setImage] = useState<string | null>(bookingData.userMedia.photo);
-    const [analyzing, setAnalyzing] = useState(false);
-    const [result, setResult] = useState<any>(bookingData.aiAnalysis.suggestions?.length > 0 ? bookingData.aiAnalysis : null);
-
-    // Initialize Camera
-=======
     const navigate = useNavigate(); // ✅ Hook para navegación
     const { user } = useAuth();
     const [showHelpModal, setShowHelpModal] = useState(false);
@@ -55,7 +36,6 @@ export default function Step2_IAExperience({ bookingData, setBookingData, onNext
         return '?';
     };
 
->>>>>>> 21d5d75 (cambios en admin y web responsive)
     const startCamera = async () => {
         try {
             const mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
@@ -69,10 +49,6 @@ export default function Step2_IAExperience({ bookingData, setBookingData, onNext
         }
     };
 
-<<<<<<< HEAD
-    // Stop Camera
-=======
->>>>>>> 21d5d75 (cambios en admin y web responsive)
     const stopCamera = () => {
         if (stream) {
             stream.getTracks().forEach(track => track.stop());
@@ -80,10 +56,6 @@ export default function Step2_IAExperience({ bookingData, setBookingData, onNext
         }
     };
 
-<<<<<<< HEAD
-    // Capture Photo
-=======
->>>>>>> 21d5d75 (cambios en admin y web responsive)
     const capture = () => {
         if (videoRef.current && canvasRef.current) {
             const video = videoRef.current;
@@ -107,10 +79,6 @@ export default function Step2_IAExperience({ bookingData, setBookingData, onNext
         }
     };
 
-<<<<<<< HEAD
-    // Start camera when component mounts if no image
-=======
->>>>>>> 21d5d75 (cambios en admin y web responsive)
     useEffect(() => {
         if (!image) {
             startCamera();
@@ -119,127 +87,6 @@ export default function Step2_IAExperience({ bookingData, setBookingData, onNext
             stopCamera();
         };
     }, [image]);
-<<<<<<< HEAD
-
-    // ✅ NUEVA FUNCIÓN CON IA REAL (usando fetch + onRequest)
-    const handleAIAnalysis = async () => {
-      if (!user) {
-        alert("Debes iniciar sesión para usar la IA");
-        return;
-      }
-
-      if (!image) {
-        alert("Primero toma una foto");
-        return;
-      }
-
-      setAnalyzing(true);
-
-      try {
-        // 1. Convertir imagen a Blob
-        const response = await fetch(image);
-        const blob = await response.blob();
-
-        // 2. Subir a Firebase Storage
-        const fileName = `foto-${Date.now()}-${user.uid}.jpg`;
-        const storageRef = ref(storage, `users/${user.uid}/photos/${fileName}`);
-        await uploadBytes(storageRef, blob);
-        const downloadURL = await getDownloadURL(storageRef);
-
-        // 3. ✅ OBTENER TOKEN DE AUTENTICACIÓN
-        const idToken = await user.getIdToken();
-
-        // 4. ✅ LLAMAR A LA FUNCIÓN CON FETCH (onRequest)
-        const iaResponse = await fetch(
-          "https://us-central1-barberia-ayan.cloudfunctions.net/detectFaceShape",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${idToken}`
-            },
-            body: JSON.stringify({ imageUrl: downloadURL })
-          }
-        );
-
-        if (!iaResponse.ok) {
-          throw new Error(`Error ${iaResponse.status}: ${await iaResponse.text()}`);
-        }
-
-        const iaResult = await iaResponse.json();
-
-        // 5. Extraer datos de la IA
-        const detectedShapeRaw = iaResult.faceShape || "Ovalado";
-        const confidence = iaResult.confidence || 0.85;
-
-        // 6. Obtener sugerencia según el rostro detectado
-        const shapeKey = detectedShapeRaw.toLowerCase();
-        const availableCuts = aiSuggestions[shapeKey as keyof typeof aiSuggestions] 
-          ?? aiSuggestions.ovalado 
-          ?? [];
-
-        const bestCut = availableCuts.length > 0 
-          ? availableCuts[0] 
-          : {
-              nombre: "Corte Clásico",
-              imagen: "/imagenes-cortes/default.jpg",
-              descripcion: "Recomendación general.",
-              confianza: 0.85
-            };
-
-        // 7. Crear análisis
-        const analysis = {
-          faceShape: detectedShapeRaw,
-          suggestion: {
-            ...bestCut,
-            confianza: confidence
-          }
-        };
-
-        // 8. Guardar en Firestore
-        await addDoc(collection(db, "sugerencias"), {
-          userId: user.uid,
-          fotoUrl: downloadURL,
-          rostro: detectedShapeRaw,
-          cortePrincipal: bestCut.nombre,
-          confianza: confidence,
-          status: "completada",
-          createdAt: Timestamp.now(),
-          rawIA: iaResult
-        });
-
-        // 9. Actualizar estado local
-        setResult(analysis);
-        setBookingData((prev: any) => ({
-          ...prev,
-          userMedia: { ...prev.userMedia, photo: image, faceShape: detectedShapeRaw },
-          aiAnalysis: analysis
-        }));
-
-      } catch (err: any) {
-        console.error("Error en IA real:", err);
-        
-        let message = "No se pudo analizar tu rostro. ";
-        if (err.message?.includes("No se detectó ningún rostro")) {
-          message += "Asegúrate de que tu rostro esté bien visible y centrado.";
-        } else if (err.message?.includes("imagen no es válida")) {
-          message += "La foto no es válida. Intenta tomar otra.";
-        } else {
-          message += "Intenta nuevamente en unos momentos.";
-        }
-        
-        alert(message);
-      } finally {
-        setAnalyzing(false);
-      }
-    };
-
-    return (
-        <div className="flex flex-col items-center max-w-3xl mx-auto w-full animate-fade-in px-4">
-            <h2 className="text-3xl font-bold text-[#D4AF37] mb-2 font-playfair text-center">
-                Experiencia IA Athenea
-            </h2>
-=======
 const handleAIAnalysis = async () => {
 
 if (!user) {
@@ -309,14 +156,13 @@ try {
     }
 
     const bestCut = availableCuts[0];
+    const allCuts = availableCuts;
 
-    const analysis = {
-        faceShape: detectedShapeRaw,
-        suggestion: {
-            ...bestCut,
-            confianza: confidence
-        }
-    };
+  const analysis = {
+    faceShape: detectedShapeRaw,
+    suggestions: allCuts, //  TODAS LAS OPCIONES
+    suggestion: bestCut   //  la principal (como antes)
+};
 
     await addDoc(collection(db, "sugerencias"), {
         userId: user.uid,
@@ -392,21 +238,13 @@ try {
                 )}
             </div>
 
->>>>>>> 21d5d75 (cambios en admin y web responsive)
             <p className="text-gray-400 mb-8 text-center max-w-md">
                 Nuestra inteligencia artificial analiza tus rasgos faciales para recomendarte el corte perfecto.
             </p>
 
-<<<<<<< HEAD
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 w-full items-start">
-                {/* Camera */}
-                <div className="flex flex-col items-center">
-                    <div className="relative w-full aspect-[3/4] max-w-sm bg-black rounded-2xl overflow-hidden border-2 border-[#1e1e1e] shadow-[0_10px_30px_rgba(0,0,0,0.5)] group">
-=======
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 w-full items-start">
                 <div className="flex flex-col items-center">
                     <div className="relative w-full aspect-[3/4] max-w-xs sm:max-w-sm bg-black rounded-2xl overflow-hidden border-2 border-[#1e1e1e] shadow-[0_10px_30px_rgba(0,0,0,0.5)] group">
->>>>>>> 21d5d75 (cambios en admin y web responsive)
                         {image ? (
                             <img src={image} alt="Usuario" className="w-full h-full object-cover transform scale-x-[-1]" />
                         ) : (
@@ -429,10 +267,6 @@ try {
                             </>
                         )}
 
-<<<<<<< HEAD
-                        {/* Scanner Overlay */}
-=======
->>>>>>> 21d5d75 (cambios en admin y web responsive)
                         {analyzing && (
                             <div className="absolute inset-0 bg-black/20 z-10">
                                 <motion.div
@@ -447,10 +281,6 @@ try {
                             </div>
                         )}
 
-<<<<<<< HEAD
-                        {/* Decorative Corners */}
-=======
->>>>>>> 21d5d75 (cambios en admin y web responsive)
                         <div className="absolute top-4 left-4 w-8 h-8 border-t-2 border-l-2 border-[#D4AF37]/50 rounded-tl-lg"></div>
                         <div className="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-[#D4AF37]/50 rounded-tr-lg"></div>
                         <div className="absolute bottom-4 left-4 w-8 h-8 border-b-2 border-l-2 border-[#D4AF37]/50 rounded-bl-lg"></div>
@@ -461,11 +291,7 @@ try {
                         {!image ? (
                             <button
                                 onClick={capture}
-<<<<<<< HEAD
-                                className="bg-white text-black p-4 rounded-full shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:scale-110 transition-transform hover:shadow-[0_0_30px_rgba(255,255,255,0.5)] font-bold"
-=======
                                 className="bg-white text-black p-3 md:p-4 rounded-full shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:scale-110 transition-transform hover:shadow-[0_0_30px_rgba(255,255,255,0.5)] font-bold"
->>>>>>> 21d5d75 (cambios en admin y web responsive)
                                 disabled={!stream}
                             >
                                 <CameraIcon size={24} />
@@ -473,11 +299,7 @@ try {
                         ) : (
                             <button
                                 onClick={() => { setImage(null); setResult(null); startCamera(); }}
-<<<<<<< HEAD
-                                className="px-8 py-3 rounded-full border border-gray-600 text-gray-400 hover:text-white hover:border-white transition-colors flex items-center gap-2 min-h-[50px]"
-=======
                                 className="px-6 md:px-8 py-3 rounded-full border border-gray-600 text-gray-400 hover:text-white hover:border-white transition-colors flex items-center gap-2 min-h-[50px]"
->>>>>>> 21d5d75 (cambios en admin y web responsive)
                                 disabled={analyzing}
                             >
                                 <RefreshCw size={20} /> Retomar Foto
@@ -486,18 +308,6 @@ try {
                     </div>
                 </div>
 
-<<<<<<< HEAD
-                {/* Sugerencia única - centrada y elegante */}
-                <div className="flex flex-col items-center w-full">
-                    {!result ? (
-                        <div className="text-center w-full">
-                            <h3 className="text-xl font-bold text-white mb-4">¿Cómo funciona?</h3>
-                            <ul className="text-gray-400 space-y-3 mb-8 text-sm">
-                                <li className="flex items-center gap-2"><div className="w-2 h-2 bg-[#D4AF37] rounded-full"></div> Toma una foto frontal con buena luz.</li>
-                                <li className="flex items-center gap-2"><div className="w-2 h-2 bg-[#D4AF37] rounded-full"></div> Nuestra IA escanea tu rostro.</li>
-                                <li className="flex items-center gap-2"><div className="w-2 h-2 bg-[#D4AF37] rounded-full"></div> Recibe **una sugerencia personalizada y premium**.</li>
-                            </ul>
-=======
                 <div className="flex flex-col items-center w-full">
                     {!result ? (
                         <div className="text-center w-full">
@@ -511,49 +321,31 @@ try {
                                     <span>¿Cómo funciona?</span>
                                 </button>
                             </div>
->>>>>>> 21d5d75 (cambios en admin y web responsive)
 
                             <button
                                 onClick={handleAIAnalysis}
                                 disabled={!image || analyzing}
-<<<<<<< HEAD
-                                className={`
-                                    w-full py-4 rounded-xl font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all
-                                    ${!image || analyzing
-                                        ? "bg-[#1e1e1e] text-gray-600 cursor-not-allowed border border-white/5"
-                                        : "bg-gradient-to-r from-[#D4AF37] to-[#B8860B] text-black hover:shadow-[0_0_20px_#D4AF37] transform hover:-translate-y-1"}
-                                `}
-=======
                                 className={`w-full py-3 md:py-4 rounded-xl font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all mt-6
                                     ${!image || analyzing
                                         ? "bg-[#1e1e1e] text-gray-600 cursor-not-allowed border border-white/5"
                                         : "bg-gradient-to-r from-[#D4AF37] to-[#B8860B] text-black hover:shadow-[0_0_20px_rgba(212,175,55,0.5)] transform hover:-translate-y-1"}`}
->>>>>>> 21d5d75 (cambios en admin y web responsive)
                             >
                                 {analyzing ? "Analizando..." : <><Zap size={20} fill="currentColor" /> Analizar con IA</>}
                             </button>
                         </div>
                     ) : (
+
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
-<<<<<<< HEAD
-                            className="w-full max-w-md bg-[#1e1e1e] p-6 rounded-2xl border border-[#D4AF37]/20 shadow-xl text-center"
-=======
                             className="w-full max-w-md bg-[#1e1e1e] p-5 md:p-6 rounded-2xl border border-[#D4AF37]/20 shadow-xl text-center"
->>>>>>> 21d5d75 (cambios en admin y web responsive)
                         >
                             <div className="mb-6">
                                 <span className="text-[#D4AF37] text-xs font-bold uppercase tracking-[0.2em] block">Rostro Detectado</span>
                                 <h3 className="text-2xl font-playfair font-bold text-white mt-1">{result.faceShape}</h3>
                             </div>
 
-<<<<<<< HEAD
-                            {/* Imagen principal - grande y centrada */}
-                            <div className="w-full h-64 mb-5 overflow-hidden rounded-xl border border-white/20 shadow-inner">
-=======
                             <div className="w-full h-48 md:h-64 mb-5 overflow-hidden rounded-xl border border-white/20 shadow-inner">
->>>>>>> 21d5d75 (cambios en admin y web responsive)
                                 <img 
                                     src={result.suggestion.imagen} 
                                     alt={result.suggestion.nombre}
@@ -564,10 +356,6 @@ try {
                                 />
                             </div>
 
-<<<<<<< HEAD
-                            {/* Nombre y descripción */}
-=======
->>>>>>> 21d5d75 (cambios en admin y web responsive)
                             <h3 className="text-2xl font-playfair font-bold text-white mb-2">
                                 {result.suggestion.nombre}
                             </h3>
@@ -575,19 +363,11 @@ try {
                                 {result.suggestion.descripcion}
                             </p>
 
-<<<<<<< HEAD
-                            {/* Confianza */}
-=======
->>>>>>> 21d5d75 (cambios en admin y web responsive)
                             <div className="flex justify-center items-center gap-2 mb-6">
                                 <span className="text-[#D4AF37] font-bold">Confianza:</span>
                                 <span className="text-white font-mono">{(result.suggestion.confianza * 100).toFixed(0)}%</span>
                             </div>
 
-<<<<<<< HEAD
-                            {/* Botón de acción */}
-=======
->>>>>>> 21d5d75 (cambios en admin y web responsive)
                             <button
                                 onClick={() => {
                                     setBookingData((prev: any) => ({
@@ -601,15 +381,94 @@ try {
                                 Agendar este corte
                             </button>
                         </motion.div>
-                    )}
+========
+                       <motion.div
+initial={{ opacity: 0, y: 20 }}
+animate={{ opacity: 1, y: 0 }}
+className="w-full"
+>
+<div className="mb-6 text-center">
+<span className="text-[#D4AF37] text-xs font-bold uppercase tracking-[0.2em] block">
+Rostro Detectado
+</span>
+<h3 className="text-2xl font-playfair font-bold text-white mt-1">
+{result.faceShape}
+</h3>
+</div>
+
+<div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+
+{result.suggestions.map((sug:any, index:number)=>{
+
+const isSelected =
+bookingData.aiAnalysis?.suggestion?.nombre === sug.nombre;
+
+return(
+
+<div
+key={index}
+onClick={()=>{
+
+setBookingData((prev:any)=>({
+...prev,
+aiAnalysis:{
+...prev.aiAnalysis,
+suggestion: sug
+}
+}));
+
+}}
+className={`cursor-pointer rounded-xl overflow-hidden border-2 transition-all
+
+${isSelected
+? "border-[#D4AF37] scale-105"
+: "border-white/10 hover:border-[#D4AF37]/40"}
+`}
+>
+
+<img
+src={sug.imagen}
+className="w-full h-40 object-cover"
+/>
+
+<div className="p-3 text-center">
+
+<h3 className="text-white font-bold">
+{sug.nombre}
+</h3>
+
+<p className="text-gray-400 text-xs">
+{sug.descripcion}
+</p>
+
+<p className="text-[#D4AF37] text-xs mt-1">
+{(sug.confianza * 100).toFixed(0)}%
+</p>
+
+</div>
+
+</div>
+
+);
+
+})}
+
+</div>
+
+<button
+onClick={onNext}
+disabled={!bookingData.aiAnalysis?.suggestion}
+className="w-full mt-6 py-4 bg-gradient-to-r from-[#D4AF37] to-[#B8860B] text-black font-bold rounded-xl"
+>
+Continuar con este corte
+</button>
+
+</motion.div>
+                    
                 </div>
             </div>
 
-<<<<<<< HEAD
-            <div className="flex justify-between w-full mt-10 border-t border-white/5 pt-6 max-w-3xl">
-=======
             <div className="flex flex-col sm:flex-row justify-between w-full mt-10 border-t border-white/5 pt-6 gap-4 max-w-3xl">
->>>>>>> 21d5d75 (cambios en admin y web responsive)
                 <button onClick={onBack} className="text-gray-500 hover:text-white px-8 py-4 font-medium transition-colors min-h-[50px]">
                     Atrás
                 </button>
@@ -621,25 +480,14 @@ try {
                             setBookingData((prev: any) => ({ ...prev, step: 1 }));
                         }
                     }}
-<<<<<<< HEAD
-                    className={`
-                        px-12 py-5 rounded-full font-bold uppercase tracking-widest text-sm transition-all min-h-[60px]
-                        ${result
-                            ? "bg-transparent border border-gray-600 text-gray-400 hover:border-white hover:text-white"
-                            : "bg-transparent border border-gray-600 text-gray-400 hover:border-white hover:text-white"}
-                    `}
-=======
                     className={`px-12 py-5 rounded-full font-bold uppercase tracking-widest text-sm transition-all min-h-[60px]
                         ${result
                             ? "bg-transparent border border-gray-600 text-gray-400 hover:border-white hover:text-white"
                             : "bg-transparent border border-gray-600 text-gray-400 hover:border-white hover:text-white"}`}
->>>>>>> 21d5d75 (cambios en admin y web responsive)
                 >
                     {result ? "Omitir" : "Omitir este paso"}
                 </button>
             </div>
-<<<<<<< HEAD
-=======
 
             {showHelpModal && (
                 <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
@@ -675,7 +523,6 @@ try {
                     </div>
                 </div>
             )}
->>>>>>> 21d5d75 (cambios en admin y web responsive)
         </div>
     );
 }

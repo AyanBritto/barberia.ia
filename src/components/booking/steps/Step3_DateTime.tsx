@@ -48,11 +48,21 @@ try{
 
 if(!bookingData.appointment?.barber) return;
 
-const reservas = await getReservasPorFecha(
-localDate,
-bookingData.appointment.barber.name
-);
+const fechaSeleccionada = bookingData.appointment?.date || localDate;
 
+const reservas = await getReservasPorFecha(
+  fechaSeleccionada,
+  bookingData.appointment.barber.name
+);
+if (!bookingData.appointment?.date) {
+  setBookingData((prev:any)=>({
+    ...prev,
+    appointment:{
+      ...prev.appointment,
+      date: localDate
+    }
+  }));
+}
 const ocupados = reservas
 .filter((r:any)=> r.status==="confirmada")
 .map((r:any)=> r.horario);
@@ -69,7 +79,7 @@ console.error("Error cargando reservas",error);
 
 cargarReservas();
 
-},[bookingData.appointment?.barber]);
+},[bookingData.appointment?.barber, bookingData.appointment?.date]);
 
 
 const handleBarberSelect = (barber:any)=>{
@@ -87,25 +97,45 @@ barber
 
 const handleTimeSelect = (time:string)=>{
 
-setBookingData((prev:any)=>({
-...prev,
-appointment:{
-...prev.appointment,
-time,
-date:localDate
-}
-}));
+  setBookingData((prev:any)=>({
+    ...prev,
+    appointment:{
+      ...prev.appointment,
+      time,
+      date: selectedDate 
+    }
+  }));
 
 };
 
 
 const getInitial = ()=>{
+ 
 if(user?.displayName) return user.displayName[0]?.toUpperCase() || '?';
 if(user?.email) return user.email.split('@')[0][0]?.toUpperCase() || '?';
+
 return '?';
 };
+const selectedDate = bookingData.appointment?.date || localDate;
+const isPastTime = (time:string) => {
 
+  const now = new Date();
 
+  // fecha seleccionada
+  const [year, month, day] = selectedDate.split("-");
+  const [hours, minutes] = time.split(":");
+
+  const selectedDateTime = new Date(
+    Number(year),
+    Number(month) - 1,
+    Number(day),
+    Number(hours),
+    Number(minutes)
+  );
+
+  return selectedDateTime < now;
+
+};
 return(
 
 <div className="space-y-10 md:space-y-12 animate-fade-in max-w-4xl mx-auto px-2">
@@ -208,43 +238,73 @@ Master Barber
 
 <section className="border-t border-white/10 pt-10">
 
-<div className="text-center mb-8">
+<div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
 
-<h2 className="text-2xl font-bold text-[#D4AF37] flex justify-center gap-2">
-
-<Clock/>
-
-Disponibilidad
-
+<h2 className="text-2xl font-bold text-[#D4AF37] flex items-center gap-2">
+  <Clock/>
+  Disponibilidad
 </h2>
+
+<input
+type="date"
+value={bookingData.appointment?.date || localDate}
+min={localDate}
+onChange={(e)=>{
+  setBookingData((prev:any)=>({
+    ...prev,
+    appointment:{
+      ...prev.appointment,
+      date: e.target.value,
+      time: null
+    }
+  }));
+}}
+className="bg-[#1e1e1e] text-white border border-[#D4AF37] px-4 py-2 rounded-lg"
+/>
 
 </div>
 
-
-<div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 max-w-2xl mx-auto">
+<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 max-w-3xl mx-auto">
 
 {timeSlots.map((time)=>{
 
 const isReserved = reservedTimes.includes(time);
+const isPast = isPastTime(time);
 const isSelected = bookingData.appointment?.time===time;
+const isDisabled = isReserved || isPast;
 
 return(
 
 <button
 key={time}
-onClick={()=>!isReserved && handleTimeSelect(time)}
-disabled={isReserved}
-className={`py-2 md:py-3 rounded-xl font-bold border text-sm md:text-base
+onClick={()=>!isDisabled && handleTimeSelect(time)}
+disabled={isDisabled}
+className={`
+relative py-3 rounded-xl font-semibold text-sm md:text-base border transition-all duration-200
 
 ${isReserved
-?"bg-red-900 text-red-400 border-red-700"
-:isSelected
-?"bg-[#D4AF37] text-black border-[#D4AF37]"
-:"bg-[#252525] text-gray-400 border-white/5 hover:border-[#D4AF37]"}
+? "bg-red-900/70 text-red-300 border-red-700"
+: isPast
+? "bg-gray-800/60 text-gray-500 border-gray-700 cursor-not-allowed"
+: isSelected
+? "bg-[#D4AF37] text-black border-[#D4AF37] shadow-lg scale-105"
+: "bg-[#1e1e1e] text-gray-300 border-white/10 hover:border-[#D4AF37] hover:scale-105"}
 `}
 >
+{time}
 
-{isReserved ? "Ocupado" : time}
+{/* LABEL */}
+{isReserved && (
+  <span className="block text-[10px] mt-1 text-red-400">
+    Ocupado
+  </span>
+)}
+
+{isPast && (
+  <span className="block text-[10px] mt-1 text-gray-500">
+    Pasado
+  </span>
+)}
 
 </button>
 

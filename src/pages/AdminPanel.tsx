@@ -7,6 +7,21 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "../service/firebase";
 import { getIAStatus, setIAStatus } from "../service/configService";
 import { getUsuarios, eliminarUsuario } from "../service/usersServices";
+import { httpsCallable } from "firebase/functions";
+import { functions } from "../service/firebase";
+
+
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell
+} from "recharts";
 
 import {
 getServicios,
@@ -15,11 +30,12 @@ actualizarPrecioServicio,
 eliminarServicio
 } from "../service/servicesServices";
 
-import { getReservas } from "../service/reservaService";
+import { getReservas, cancelarReservaAdmin } from "../service/reservaService";
+
 
 export default function AdminPanel(){
 
-const { isAdmin, loading } = useAuth();
+const { rol, user, loading } = useAuth();
 const navigate = useNavigate();
 
 const [reservas,setReservas] = useState<any[]>([]);
@@ -37,25 +53,76 @@ const [reservasHoy,setReservasHoy] = useState(0);
 const [reservasSemana,setReservasSemana] = useState(0);
 
 const [busquedaCliente,setBusquedaCliente] = useState("");
+const [reporteServicios, setReporteServicios] = useState<any>({});
+const [reporteBarberos, setReporteBarberos] = useState<any>({});
+const [totalIngresos, setTotalIngresos] = useState(0);
+const [filtroFecha, setFiltroFecha] = useState("todos");
+const serviciosChart = Object.entries(reporteServicios).map(([name, value]) => ({
+  name,
+  value
+}));
 
+const barberosChart = Object.entries(reporteBarberos).map(([name, value]) => ({
+  name,
+  value
+}));
+
+const COLORS = ["#D4AF37", "#8884d8", "#82ca9d", "#ff7f50"];
+const deleteUserAdmin = httpsCallable(functions, "deleteUserByAdmin");
 useEffect(()=>{
 
-if(loading) return;
+if(loading) return; // 
 
-if(!isAdmin){
-navigate("/");
-return;
+if(!rol){
+  navigate("/");
+  return;
+}
+
+if(rol !== "admin" && rol !== "barbero"){
+  navigate("/");
+  return;
 }
 
 cargarDatos();
 
-},[isAdmin,loading]);
+},[rol, loading]);
 
 const cargarDatos = async()=>{
 
 try{
 
-const reservasData = await getReservas();
+let reservasData = await getReservas();
+//  FILTRO POR FECHA
+const ahora = new Date();
+
+if(filtroFecha === "hoy"){
+  reservasData = reservasData.filter((r:any)=>{
+    const fecha = r.createdAt?.seconds
+      ? new Date(r.createdAt.seconds * 1000)
+      : new Date(r.createdAt);
+
+    return fecha.toDateString() === ahora.toDateString();
+  });
+}
+
+if(filtroFecha === "semana"){
+  const inicioSemana = new Date();
+  inicioSemana.setDate(ahora.getDate() - 7);
+
+  reservasData = reservasData.filter((r:any)=>{
+    const fecha = r.createdAt?.seconds
+      ? new Date(r.createdAt.seconds * 1000)
+      : new Date(r.createdAt);
+
+    return fecha >= inicioSemana;
+  });
+}
+if(rol === "barbero"){
+  reservasData = reservasData.filter(
+    (r:any)=> r.barberoId === user?.uid // 🔥 MEJOR
+  );
+}
+
 setReservas(reservasData);
 
 const sugerenciasSnap = await getDocs(
@@ -65,14 +132,16 @@ query(collection(db,"sugerencias"),orderBy("createdAt","desc"))
 const sugerenciasData = sugerenciasSnap.docs.map(doc=>({id:doc.id,...doc.data()}));
 setSugerencias(sugerenciasData);
 
-const usuariosData = await getUsuarios();
-setUsuarios(usuariosData);
+if(rol === "admin"){
+  const usuariosData = await getUsuarios();
+  setUsuarios(usuariosData);
 
-const serviciosData = await getServicios();
-setServicios(serviciosData);
+  const serviciosData = await getServicios();
+  setServicios(serviciosData);
 
-const iaStatus = await getIAStatus();
-setIaEnabled(iaStatus);
+  const iaStatus = await getIAStatus();
+  setIaEnabled(iaStatus);
+}
 
 const hoy = new Date();
 const inicioSemana = new Date();
@@ -113,6 +182,41 @@ return fecha >= inicioSemana;
 setReservasHoy(hoyCount);
 setReservasSemana(semanaCount);
 
+// ==========================
+//  REPORTES (SOLO ADMIN)
+// ==========================
+
+if(rol === "admin"){
+
+  const serviciosCount:any = {};
+  const barberosCount:any = {};
+  let ingresos = 0;
+
+  reservasData.forEach((r:any)=>{
+
+    // CONTAR SERVICIOS
+    if(r.servicio){
+      serviciosCount[r.servicio] = (serviciosCount[r.servicio] || 0) + 1;
+    }
+
+    // CONTAR BARBEROS
+    if(r.barbero){
+      barberosCount[r.barbero] = (barberosCount[r.barbero] || 0) + 1;
+    }
+
+    // INGRESOS 
+if(r.status === "confirmada"){
+  ingresos += r.precio || 0;
+}
+
+  });
+
+  setReporteServicios(serviciosCount);
+  setReporteBarberos(barberosCount);
+  setTotalIngresos(ingresos);
+
+}
+
 }catch(err){
 console.error("Error cargando datos",err);
 }
@@ -127,7 +231,7 @@ Cargando...
 );
 }
 
-if(!isAdmin) return null;
+if(!rol) return null;
 
 /* CONTROL SERVICIO */
 
@@ -144,6 +248,23 @@ cargarDatos();
 const finalizarServicio = async(id:string)=>{
 await updateDoc(doc(db,"reservas",id),{estadoServicio:"finalizada"});
 cargarDatos();
+};
+const cancelarReservaAdminPanel = async(id:string)=>{
+
+if(!window.confirm("¿Cancelar esta reserva?")) return;
+
+try{
+
+await cancelarReservaAdmin(id);
+
+cargarDatos();
+
+}catch(error){
+
+console.error("Error cancelando reserva",error);
+
+}
+
 };
 
 /* IA */
@@ -229,17 +350,25 @@ return(
 <div className="max-w-6xl mx-auto">
 
 <h1 className="text-2xl md:text-3xl font-bold text-[#D4AF37] mb-8">
-Panel de Administración
+{rol === "admin" ? "Panel de Administración" : "Panel del Barbero"}
 </h1>
+{rol === "barbero" && (
+  <p className="text-gray-400 mb-6">
+    Panel personal — gestiona tus reservas y clientes
+  </p>
+)}
+<p></p>
 
 {/* DASHBOARD */}
 
 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
 
+{rol === "admin" && (
 <div className="bg-gray-900 p-4 rounded-lg text-center">
 <p className="text-gray-400 text-sm">Usuarios</p>
 <p className="text-2xl font-bold text-[#D4AF37]">{usuarios.length}</p>
 </div>
+)}
 
 <div className="bg-gray-900 p-4 rounded-lg text-center">
 <p className="text-gray-400 text-sm">Reservas Hoy</p>
@@ -251,10 +380,12 @@ Panel de Administración
 <p className="text-2xl font-bold text-[#D4AF37]">{reservasSemana}</p>
 </div>
 
+{rol === "admin" && (
 <div className="bg-gray-900 p-4 rounded-lg text-center">
 <p className="text-gray-400 text-sm">IA Usada</p>
 <p className="text-2xl font-bold text-[#D4AF37]">{sugerencias.length}</p>
 </div>
+)}
 
 </div>
 
@@ -262,15 +393,51 @@ Panel de Administración
 
 <div className="flex flex-wrap gap-3 mb-8">
 
-<button onClick={()=>setTab("reservas")} className="px-3 md:px-4 py-2 bg-gray-800 rounded text-sm md:text-base">Reservas</button>
+<button 
+onClick={()=>setTab("reservas")} 
+className={`px-4 py-2 rounded text-sm md:text-base ${tab==="reservas" ? "bg-[#D4AF37] text-black" : "bg-gray-800 text-white"}`}
+>
+Reservas
+</button>
 
-<button onClick={()=>setTab("servicios")} className="px-3 md:px-4 py-2 bg-gray-800 rounded text-sm md:text-base">Servicios</button>
+<button 
+onClick={()=>setTab("historial")} 
+className={`px-4 py-2 rounded text-sm md:text-base ${tab==="historial" ? "bg-[#D4AF37] text-black" : "bg-gray-800 text-white"}`}
+>
+Historial
+</button>
 
-<button onClick={()=>setTab("usuarios")} className="px-3 md:px-4 py-2 bg-gray-800 rounded text-sm md:text-base">Usuarios</button>
+{rol === "admin" && (
+<>
+<button 
+onClick={()=>setTab("servicios")} 
+className={`px-4 py-2 rounded text-sm md:text-base ${tab==="servicios" ? "bg-[#D4AF37] text-black" : "bg-gray-800 text-white"}`}
+>
+Servicios
+</button>
 
-<button onClick={()=>setTab("historial")} className="px-3 md:px-4 py-2 bg-gray-800 rounded text-sm md:text-base">Historial</button>
+<button 
+onClick={()=>setTab("ia")} 
+className={`px-4 py-2 rounded text-sm md:text-base ${tab==="ia" ? "bg-[#D4AF37] text-black" : "bg-gray-800 text-white"}`}
+>
+IA
+</button>
 
-<button onClick={()=>setTab("ia")} className="px-3 md:px-4 py-2 bg-gray-800 rounded text-sm md:text-base">IA</button>
+<button 
+onClick={()=>setTab("usuarios")} 
+className={`px-4 py-2 rounded text-sm md:text-base ${tab==="usuarios" ? "bg-[#D4AF37] text-black" : "bg-gray-800 text-white"}`}
+>
+Usuarios
+</button>
+
+<button 
+onClick={()=>setTab("reportes")} 
+className={`px-4 py-2 rounded text-sm md:text-base ${tab==="reportes" ? "bg-[#D4AF37] text-black" : "bg-gray-800 text-white"}`}
+>
+Reportes
+</button>
+</>
+)}
 
 </div>
 
@@ -309,7 +476,19 @@ return(
 <p><b>Barbero:</b> {res.barbero}</p>
 <p><b>Fecha:</b> {res.fecha}</p>
 <p><b>Hora:</b> {res.horario}</p>
-<p><b>Estado:</b> {res.estadoServicio || "pendiente"}</p>
+<span className={`px-2 py-1 rounded text-sm
+${res.status==="confirmada" ? "bg-green-700" :
+res.status==="cancelada_cliente" ? "bg-yellow-700" :
+res.status==="cancelada_admin" ? "bg-red-700" :
+"bg-gray-700"}`}>
+
+{res.status==="cancelada_cliente"
+? "Cancelada por cliente"
+: res.status==="cancelada_admin"
+? "Cancelada por admin"
+: res.status}
+
+</span>
 
 <div className="flex gap-2 mt-3">
 
@@ -324,7 +503,12 @@ Iniciar
 <button onClick={()=>finalizarServicio(res.id)} className="bg-blue-600 px-3 py-1 rounded text-sm">
 Finalizar
 </button>
-
+<button
+onClick={()=>cancelarReservaAdminPanel(res.id)}
+className="bg-red-700 px-3 py-1 rounded text-sm"
+>
+Cancelar
+</button>
 </div>
 
 </div>
@@ -338,6 +522,60 @@ Finalizar
 );
 
 })}
+
+</div>
+
+</div>
+
+)}
+{/* reportes */}
+{tab==="reportes" && rol==="admin" &&(
+
+<div className="space-y-10">
+
+{/* INGRESOS */}
+<div className="bg-gray-900 p-6 rounded text-center">
+<h2 className="text-xl font-bold text-[#D4AF37] mb-2">Ingresos Totales</h2>
+<p className="text-4xl font-bold">Gs {totalIngresos}</p>
+</div>
+
+{/* SERVICIOS */}
+<div className="bg-gray-900 p-6 rounded">
+<h2 className="text-xl font-bold mb-4">Servicios más usados</h2>
+
+<ResponsiveContainer width="100%" height={300}>
+  <BarChart data={serviciosChart}>
+    <XAxis dataKey="name" stroke="#ccc"/>
+    <YAxis stroke="#ccc"/>
+    <Tooltip />
+    <Bar dataKey="value" fill="#D4AF37" />
+  </BarChart>
+</ResponsiveContainer>
+
+</div>
+
+{/* BARBEROS */}
+<div className="bg-gray-900 p-6 rounded">
+<h2 className="text-xl font-bold mb-4">Reservas por barbero</h2>
+
+<ResponsiveContainer width="100%" height={300}>
+  <PieChart>
+    <Pie
+      data={barberosChart}
+      dataKey="value"
+      nameKey="name"
+      cx="50%"
+      cy="50%"
+      outerRadius={100}
+      label
+    >
+      {barberosChart.map((entry, index) => (
+        <Cell key={index} fill={COLORS[index % COLORS.length]} />
+      ))}
+    </Pie>
+    <Tooltip />
+  </PieChart>
+</ResponsiveContainer>
 
 </div>
 
@@ -377,7 +615,10 @@ const fecha = res.createdAt.seconds
 
 fechaTexto = fecha.toLocaleDateString("es-PY");
 
+
+
 }
+
 
 return(
 
@@ -542,11 +783,22 @@ Eliminar
 <p><b>Email:</b> {user.email}</p>
 
 <button
-onClick={()=>{
-if(window.confirm("Eliminar usuario")){
-eliminarUsuario(user.id);
-cargarDatos();
-}
+onClick={async ()=>{
+  if(window.confirm("¿Eliminar usuario completamente? Esta acción no se puede deshacer.")){
+
+    try{
+
+      await deleteUserAdmin({ uid: user.id }); // 🔥 cloud function
+
+      alert("Usuario eliminado correctamente");
+      cargarDatos();
+
+    }catch(err){
+      console.error(err);
+      alert("Error al eliminar usuario");
+    }
+
+  }
 }}
 className="mt-3 bg-red-600 px-3 py-1 rounded text-sm"
 >

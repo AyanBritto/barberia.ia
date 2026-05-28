@@ -296,21 +296,32 @@ const finalPhone = clientPhone || "09xx...";
 
 const reserva = {
 
-userId: user?.uid || null,
+  userId: user?.uid || null,
 
-clienteNombre: finalName,
+  email: user?.email || null,
 
-telefono: finalPhone,
+  clienteNombre: finalName,
+  telefono: finalPhone,
 
-barbero: bookingData.appointment?.barber?.name || "Alejandro",
+  barbero: bookingData.appointment?.barber?.name || "Alejandro",
+  barberoEmail: bookingData.appointment?.barber?.email || null,
+  barberoId: bookingData.appointment?.barber?.uid || null,
 
-servicio: isFromIA
-? "Corte con IA"
-: (bookingData.service?.nombre || "Corte Clásico"),
+  servicio: isFromIA
+    ? "Corte con IA"
+    : (bookingData.service?.nombre || "Corte Clásico"),
 
-corteRecomendado: isFromIA
-? bookingData.aiAnalysis.suggestion.nombre
-: null,
+  precio: isFromIA
+    ? 85000
+    : typeof bookingData.service?.precio === "string"
+      ? Number(bookingData.service.precio.replace(/\D/g, ""))
+      : bookingData.service?.precio || 0,
+
+  corteRecomendado: isFromIA
+    ? bookingData.aiAnalysis?.suggestion?.nombre || null
+    : null,
+
+
 
 /* IMAGEN DEL CORTE IA */
 
@@ -327,6 +338,10 @@ status: "confirmada",
 createdAt: new Date()
 
 };
+if (!user?.email) {
+  alert("Error: el usuario no tiene email");
+  return;
+}
 
 await crearReserva(reserva);
 

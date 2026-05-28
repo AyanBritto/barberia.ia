@@ -3,6 +3,7 @@ import { Suspense, lazy } from "react";
 import { useAuth } from "./hooks/useAuth";
 import AdminPanel from "./pages/AdminPanel";
 import { ReactNode } from "react";
+import { Toaster } from "react-hot-toast";
 
 // Lazy loading
 const Bienvenida = lazy(() => import("./Bienvenida"));
@@ -17,11 +18,11 @@ export default function App() {
 
   interface ProtectedRouteProps {
     children: ReactNode;
-    requireAdmin?: boolean;
+    roles?: string[]; //  cambio importante
   }
 
-  const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRouteProps) => {
-    const { user, isAdmin, loading } = useAuth();
+  const ProtectedRoute = ({ children, roles }: ProtectedRouteProps) => {
+    const { user, rol, loading } = useAuth();
 
     if (loading) {
       return <div>Cargando...</div>;
@@ -31,26 +32,19 @@ export default function App() {
       return <Navigate to="/iniciarsesion" replace />;
     }
 
-    if (requireAdmin && !isAdmin) {
+    //  VALIDACIÓN POR ROL
+    if (roles && !roles.includes(rol)) {
       return <Navigate to="/" replace />;
     }
 
     return <>{children}</>;
   };
 
-  // Loader componente
   const LoadingScreen = () => (
-<<<<<<< HEAD
-    <div className="min-h-screen bg-black-rich flex items-center justify-center">
-      <div className="text-center">
-        <div className="w-12 h-12 border-4 border-gold border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-        <p className="text-gold">Cargando...</p>
-=======
     <div className="min-h-screen bg-black-rich flex items-center justify-center px-4">
       <div className="text-center">
-       <div className="w-10 h-10 md:w-12 md:h-12 border-4 border-gold border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+        <div className="w-10 h-10 md:w-12 md:h-12 border-4 border-gold border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
         <p className="text-gold text-sm md:text-base">Cargando...</p>
->>>>>>> 21d5d75 (cambios en admin y web responsive)
       </div>
     </div>
   );
@@ -59,47 +53,24 @@ export default function App() {
     return <LoadingScreen />;
   }
 
-<<<<<<< HEAD
-  // ✅ NUEVA FUNCIÓN: Proteger rutas de cliente (bloquear admins)
-  const ClientOnlyRoute = ({ children }: { children: ReactNode }) => {
-    const { isAdmin, loading } = useAuth();
-    
-    if (loading) return <div>Cargando...</div>;
-=======
-  // Proteger rutas de cliente (bloquear admins)
-  const ClientOnlyRoute = ({ children }: { children: ReactNode }) => {
-    const { isAdmin, loading } = useAuth();
-    
-    if (loading) return <LoadingScreen />;
->>>>>>> 21d5d75 (cambios en admin y web responsive)
-    if (isAdmin) return <Navigate to="/admin" replace />;
-    
-    return <>{children}</>;
-  };
-
-  return (
-    <Router>
-<<<<<<< HEAD
-      <Suspense fallback={<LoadingScreen />}>
-=======
         <Suspense fallback={<LoadingScreen />}>
     <div className="min-h-screen w-full bg-black-rich text-white">
->>>>>>> 21d5d75 (cambios en admin y web responsive)
+
         <Routes>
           {/* Ruta pública: página de bienvenida */}
           <Route path="/" element={<Bienvenida />} />
 
-<<<<<<< HEAD
+ 
           {/* Ruta de login: accesible solo si no hay usuario */}
           <Route
             path="/iniciarsesion"
             element={user ? <Navigate to="/reserva" /> : <IniciarSesion />}
-=======
+
           {/* ✅ CORREGIDO: Redirigir a "/" si ya está logueado */}
           <Route
             path="/iniciarsesion"
             element={user ? <Navigate to="/" replace /> : <IniciarSesion />}
->>>>>>> 21d5d75 (cambios en admin y web responsive)
+
           />
           
           {/* Ruta de admin */}
@@ -112,49 +83,89 @@ export default function App() {
             } 
           />
 
-          {/* ✅ RUTAS DE CLIENTE: Solo accesibles para NO admins */}
-          <Route
-            path="/reserva"
-            element={
-              <ClientOnlyRoute>
-                <BookingApp />
-              </ClientOnlyRoute>
-            }
-          />
-          <Route
-            path="/sugerencia-ia"
-            element={
-              <ClientOnlyRoute>
-                <SugerenciaIA />
-              </ClientOnlyRoute>
-            }
-          />
-          <Route
-            path="/historial"
-            element={
-              <ClientOnlyRoute>
-                <Historial />
-              </ClientOnlyRoute>
-            }
-          />
-          <Route
-            path="/mis-reservas"
-            element={
-              <ClientOnlyRoute>
-                <MisReservas />
-              </ClientOnlyRoute>
-            }
-          />
+      <Suspense fallback={<LoadingScreen />}>
+        <div className="min-h-screen w-full bg-black-rich text-white">
 
+          <Routes>
+
+            <Route path="/" element={<Bienvenida />} />
+
+ 
           {/* Redirección por defecto */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
-<<<<<<< HEAD
-=======
+ 
+
       </div>
->>>>>>> 21d5d75 (cambios en admin y web responsive)
+
+            <Route
+              path="/iniciarsesion"
+              element={user ? <Navigate to="/" replace /> : <IniciarSesion />}
+            />
+
+            {/*  ADMIN */}
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute roles={["admin"]}>
+                  <AdminPanel />
+                </ProtectedRoute>
+              }
+            />
+
+            {/*  BARBERO */}
+            <Route
+              path="/panel-barbero"
+              element={
+                <ProtectedRoute roles={["barbero"]}>
+                  <AdminPanel />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* CLIENTE */}
+            <Route
+              path="/reserva"
+              element={
+                <ClientOnlyRoute>
+                  <BookingApp />
+                </ClientOnlyRoute>
+              }
+            />
+
+            <Route
+              path="/sugerencia-ia"
+              element={
+                <ClientOnlyRoute>
+                  <SugerenciaIA />
+                </ClientOnlyRoute>
+              }
+            />
+
+            <Route
+              path="/historial"
+              element={
+                <ClientOnlyRoute>
+                  <Historial />
+                </ClientOnlyRoute>
+              }
+            />
+
+            <Route
+              path="/mis-reservas"
+              element={
+                <ClientOnlyRoute>
+                  <MisReservas />
+                </ClientOnlyRoute>
+              }
+            />
+
+            <Route path="*" element={<Navigate to="/" />} />
+
+          </Routes>
+
+        </div>
       </Suspense>
     </Router>
-    
   );
 }
