@@ -35,14 +35,6 @@ export default function BookingApp() {
     // };
 
     return (
-<<<<<<< HEAD
-        <div className="min-h-screen bg-[#121212] text-[#e0e0e0] font-sans flex flex-col">
-            {/* 3. UI/UX: Stepper */}
-            <h1 className="text-white text-center text-xs p-2 bg-red-900/50">Debug: BookingApp v2 Loaded</h1>
-            <Stepper currentStep={bookingData.step} />
-
-            <div className="flex-1 max-w-4xl mx-auto w-full p-4 relative overflow-hidden">
-=======
         <div className="min-h-screen w-full bg-[#121212] text-[#e0e0e0] font-sans flex flex-col">
             {/* 3. UI/UX: Stepper */}
             <h1 className="hidden md:block text-white text-center text-xs p-2 bg-red-900/50">
@@ -51,7 +43,6 @@ Debug: BookingApp v2 Loaded
             <Stepper currentStep={bookingData.step} />
 
             <div className="flex-1 max-w-4xl mx-auto w-full px-4 md:px-6 py-4 relative overflow-hidden">
->>>>>>> 21d5d75 (cambios en admin y web responsive)
                 <AnimatePresence mode="wait">
                     <motion.div
                         key={bookingData.step}
@@ -59,11 +50,7 @@ Debug: BookingApp v2 Loaded
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -20 }}
                         transition={{ duration: 0.4, ease: "easeInOut" }}
-<<<<<<< HEAD
-                        className="h-full"
-=======
                         className="w-full h-full"
->>>>>>> 21d5d75 (cambios en admin y web responsive)
                     >
                         {bookingData.step === 1 && (
                             <Step1_ServiceSelection

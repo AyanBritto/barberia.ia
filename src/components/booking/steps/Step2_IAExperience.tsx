@@ -335,135 +335,98 @@ try {
                         </div>
                     ) : (
 
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="w-full max-w-md bg-[#1e1e1e] p-5 md:p-6 rounded-2xl border border-[#D4AF37]/20 shadow-xl text-center"
-                        >
-                            <div className="mb-6">
-                                <span className="text-[#D4AF37] text-xs font-bold uppercase tracking-[0.2em] block">Rostro Detectado</span>
-                                <h3 className="text-2xl font-playfair font-bold text-white mt-1">{result.faceShape}</h3>
-                            </div>
+                       
 
-                            <div className="w-full h-48 md:h-64 mb-5 overflow-hidden rounded-xl border border-white/20 shadow-inner">
-                                <img 
-                                    src={result.suggestion.imagen} 
-                                    alt={result.suggestion.nombre}
-                                    className="w-full h-full object-cover"
-                                    onError={(e) => {
-                                        e.currentTarget.src = "/imagenes-cortes/default.jpg";
-                                    }}
-                                />
-                            </div>
 
-                            <h3 className="text-2xl font-playfair font-bold text-white mb-2">
-                                {result.suggestion.nombre}
-                            </h3>
-                            <p className="text-gray-400 mb-4 text-sm">
-                                {result.suggestion.descripcion}
-                            </p>
+    <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full"
+    >
+        <div className="mb-6 text-center">
+            <span className="text-[#D4AF37] text-xs font-bold uppercase tracking-[0.2em] block">
+                Rostro Detectado
+            </span>
 
-                            <div className="flex justify-center items-center gap-2 mb-6">
-                                <span className="text-[#D4AF37] font-bold">Confianza:</span>
-                                <span className="text-white font-mono">{(result.suggestion.confianza * 100).toFixed(0)}%</span>
-                            </div>
+            <h3 className="text-2xl font-playfair font-bold text-white mt-1">
+                {result.faceShape}
+            </h3>
+        </div>
 
-                            <button
-                                onClick={() => {
-                                    setBookingData((prev: any) => ({
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            {result.suggestions.map(
+                (sug: any, index: number) => {
+                    const isSelected =
+                        bookingData.aiAnalysis?.suggestion
+                            ?.nombre === sug.nombre;
+
+                    return (
+                        <div
+                            key={index}
+                            onClick={() => {
+                                setBookingData(
+                                    (prev: any) => ({
                                         ...prev,
-                                        aiAnalysis: { ...prev.aiAnalysis, selectedCut: result.suggestion }
-                                    }));
-                                    onNext();
-                                }}
-                                className="w-full py-4 bg-gradient-to-r from-[#D4AF37] to-[#B8860B] text-black font-bold rounded-xl hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] transition-all"
-                            >
-                                Agendar este corte
-                            </button>
-                        </motion.div>
-========
-                       <motion.div
-initial={{ opacity: 0, y: 20 }}
-animate={{ opacity: 1, y: 0 }}
-className="w-full"
->
-<div className="mb-6 text-center">
-<span className="text-[#D4AF37] text-xs font-bold uppercase tracking-[0.2em] block">
-Rostro Detectado
-</span>
-<h3 className="text-2xl font-playfair font-bold text-white mt-1">
-{result.faceShape}
-</h3>
-</div>
+                                        aiAnalysis: {
+                                            ...prev.aiAnalysis,
+                                            suggestion:
+                                                sug,
+                                        },
+                                    })
+                                );
+                            }}
+                            className={`cursor-pointer rounded-xl overflow-hidden border-2 transition-all ${
+                                isSelected
+                                    ? "border-[#D4AF37] scale-105"
+                                    : "border-white/10 hover:border-[#D4AF37]/40"
+                            }`}
+                        >
+                            <img
+                                src={sug.imagen}
+                                alt={sug.nombre}
+                                className="w-full h-40 object-cover"
+                            />
 
-<div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                            <div className="p-3 text-center">
+                                <h3 className="text-white font-bold">
+                                    {sug.nombre}
+                                </h3>
 
-{result.suggestions.map((sug:any, index:number)=>{
+                                <p className="text-gray-400 text-xs">
+                                    {sug.descripcion}
+                                </p>
 
-const isSelected =
-bookingData.aiAnalysis?.suggestion?.nombre === sug.nombre;
+                                <p className="text-[#D4AF37] text-xs mt-1">
+                                    {(
+                                        sug.confianza *
+                                        100
+                                    ).toFixed(0)}
+                                    %
+                                </p>
+                            </div>
+                        </div>
+                    );
+                }
+            )}
+        </div>
 
-return(
+        <button
+            onClick={onNext}
+            disabled={
+                !bookingData.aiAnalysis
+                    ?.suggestion
+            }
+            className="w-full mt-6 py-4 bg-gradient-to-r from-[#D4AF37] to-[#B8860B] text-black font-bold rounded-xl"
+        >
+            Continuar con este corte
+        </button>
+    </motion.div>
 
-<div
-key={index}
-onClick={()=>{
 
-setBookingData((prev:any)=>({
-...prev,
-aiAnalysis:{
-...prev.aiAnalysis,
-suggestion: sug
-}
-}));
+)}
 
-}}
-className={`cursor-pointer rounded-xl overflow-hidden border-2 transition-all
 
-${isSelected
-? "border-[#D4AF37] scale-105"
-: "border-white/10 hover:border-[#D4AF37]/40"}
-`}
->
 
-<img
-src={sug.imagen}
-className="w-full h-40 object-cover"
-/>
-
-<div className="p-3 text-center">
-
-<h3 className="text-white font-bold">
-{sug.nombre}
-</h3>
-
-<p className="text-gray-400 text-xs">
-{sug.descripcion}
-</p>
-
-<p className="text-[#D4AF37] text-xs mt-1">
-{(sug.confianza * 100).toFixed(0)}%
-</p>
-
-</div>
-
-</div>
-
-);
-
-})}
-
-</div>
-
-<button
-onClick={onNext}
-disabled={!bookingData.aiAnalysis?.suggestion}
-className="w-full mt-6 py-4 bg-gradient-to-r from-[#D4AF37] to-[#B8860B] text-black font-bold rounded-xl"
->
-Continuar con este corte
-</button>
-
-</motion.div>
                     
                 </div>
             </div>
@@ -499,7 +462,7 @@ Continuar con este corte
                                 className="text-gray-400 hover:text-white text-2xl"
                                 aria-label="Cerrar"
                             >
-                                ×
+                
                             </button>
                         </div>
                         <div className="p-6 space-y-4 text-gray-300">
