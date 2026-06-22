@@ -233,22 +233,63 @@ Cargando...
 
 if(!rol) return null;
 
+
 /* CONTROL SERVICIO */
 
-const marcarLlegada = async(id:string)=>{
-await updateDoc(doc(db,"reservas",id),{estadoServicio:"cliente_llego"});
-cargarDatos();
+const marcarLlegada = async (id: string) => {
+  try {
+
+    console.log("actualizando llegada", id);
+
+    await updateDoc(doc(db, "reservas", id), {
+      estadoServicio: "cliente_llego"
+    });
+
+    console.log("llegada actualizada");
+
+    cargarDatos();
+
+  } catch (error) {
+    console.error("Error marcar llegada:", error);
+  }
 };
 
-const iniciarServicio = async(id:string)=>{
-await updateDoc(doc(db,"reservas",id),{estadoServicio:"en_servicio"});
-cargarDatos();
+const iniciarServicio = async (id: string) => {
+  try {
+
+    console.log("iniciando servicio", id);
+
+    await updateDoc(doc(db, "reservas", id), {
+      estadoServicio: "en_servicio"
+    });
+
+    console.log("servicio iniciado");
+
+    cargarDatos();
+
+  } catch (error) {
+    console.error("Error iniciar servicio:", error);
+  }
 };
 
-const finalizarServicio = async(id:string)=>{
-await updateDoc(doc(db,"reservas",id),{estadoServicio:"finalizada"});
-cargarDatos();
+const finalizarServicio = async (id: string) => {
+  try {
+
+    console.log("finalizando servicio", id);
+
+    await updateDoc(doc(db, "reservas", id), {
+      estadoServicio: "finalizada"
+    });
+
+    console.log("servicio finalizado");
+
+    cargarDatos();
+
+  } catch (error) {
+    console.error("Error finalizar servicio:", error);
+  }
 };
+
 const cancelarReservaAdminPanel = async(id:string)=>{
 
 if(!window.confirm("¿Cancelar esta reserva?")) return;
@@ -476,6 +517,16 @@ return(
 <p><b>Barbero:</b> {res.barbero}</p>
 <p><b>Fecha:</b> {res.fecha}</p>
 <p><b>Hora:</b> {res.horario}</p>
+<p>
+  <b>Estado servicio:</b>{" "}
+  {res.estadoServicio === "cliente_llego"
+    ? "Cliente llegó"
+    : res.estadoServicio === "en_servicio"
+    ? "En servicio"
+    : res.estadoServicio === "finalizada"
+    ? "Finalizado"
+    : "Pendiente"}
+</p>
 <span className={`px-2 py-1 rounded text-sm
 ${res.status==="confirmada" ? "bg-green-700" :
 res.status==="cancelada_cliente" ? "bg-yellow-700" :

@@ -1,69 +1,65 @@
-# React + TypeScript + Vite
+# BARBER-IA
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Plataforma Web para Gestión de Reservas y Sugerencia Inteligente de Estilos de Corte mediante Inteligencia Artificial en una Barbería de Encarnación
 
-Currently, two official plugins are available:
+### Autor
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Angel Ayan Britto Cortesi
 
-## Expanding the ESLint configuration
+### Carrera
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Licenciatura en Análisis de Sistemas Informáticos
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### Descripción
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+BARBER-IA es una plataforma web desarrollada para optimizar la gestión de reservas en barberías mediante la automatización de turnos y la incorporación de un módulo de inteligencia artificial capaz de sugerir estilos de corte personalizados a partir del análisis facial del cliente.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+### Funcionalidades
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+* Registro e inicio de sesión mediante Firebase Authentication.
+* Reserva de turnos online.
+* Gestión de reservas en tiempo real.
+* Panel administrativo.
+* Panel de barberos.
+* Historial de reservas.
+* Cancelación de reservas.
+* Análisis facial mediante Google Cloud Vision API.
+* Recomendación inteligente de estilos de corte.
+* Gestión de servicios.
+* Reportes operativos.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Tecnologías utilizadas
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+**Frontend**
+
+* React
+* TypeScript
+* Vite
+* Tailwind CSS
+* Framer Motion
+
+**Backend y Cloud**
+
+* Firebase Authentication
+* Cloud Firestore
+* Firebase Storage
+* Cloud Functions
+
+**Inteligencia Artificial**
+
+* Google Cloud Vision API
+
+### Arquitectura
+
+El sistema implementa una arquitectura serverless basada en Firebase, permitiendo escalabilidad, mantenimiento simplificado e integración con servicios de inteligencia artificial en la nube.
+
+### Documentación
+
+La documentación completa se encuentra disponible en la carpeta `/docs`.
+
+* Manual de Usuario
+* Documentacion del sistema
+
+### Repositorio
+
+Proyecto académico desarrollado para la Universidad Autónoma de Encarnación (UNAE).

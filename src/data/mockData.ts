@@ -11,13 +11,15 @@ export const barbers = [
     id: 1, 
     name: "Alejandro", 
     img: "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=400&q=80",
-    email: "alejandro@gmail.com" 
+    email: "3barbero3@gmail.com",
+    uid:"ePxGL5W3wYUCERGzDDnuZ2omTwh2", 
   },
   { 
     id: 2, 
     name: "Lisandro", 
     img: "https://images.unsplash.com/photo-1605497788044-5a32c7078486?auto=format&fit=crop&w=400&q=80",
-    email: "lisandro@gmail.com"
+    email: "b28071669@gmail.com",
+    uid:"QT42cMuH2VUgEToZuRcYddJUJF82",
   },
   { 
     id: 3, 

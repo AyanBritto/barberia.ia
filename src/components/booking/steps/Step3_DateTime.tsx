@@ -39,7 +39,7 @@ const day = String(today.getDate()).padStart(2,'0');
 const localDate = `${year}-${month}-${day}`;
 
 
-// 🔥 CARGAR RESERVAS
+//  CARGAR RESERVAS
 useEffect(()=>{
 
 const cargarReservas = async ()=>{

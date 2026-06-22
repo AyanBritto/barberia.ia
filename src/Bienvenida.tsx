@@ -15,7 +15,7 @@ const handleDeleteAccount = async () => {
   if(!window.confirm("¿Seguro que quieres eliminar tu cuenta?")) return;
 
   try{
-    await deleteAccount(); // ✅ SOLO USARLO
+    await deleteAccount(); //  SOLO USARLO
     alert("Cuenta eliminada correctamente");
     navigate("/");
   }catch(err){

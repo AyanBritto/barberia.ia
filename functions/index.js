@@ -173,7 +173,7 @@ if (ratio < 1.1) {
     return res.status(500).json({ error: "Error interno" });
   }
 
-});
+;
 
 
 // =============================
@@ -364,4 +364,4 @@ exports.deleteUserByAdmin = functions.https.onCall(async (data, context) => {
   return { success: true };
 
 });
->>>>>>> 21d5d75 (cambios en admin y web responsive)
+

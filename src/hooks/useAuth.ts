@@ -44,7 +44,7 @@ export function useAuth() {
 
         if (currentUser) {
 
-          console.log("🔥 UID LOGUEADO:", currentUser.uid); 
+          console.log(" UID LOGUEADO:", currentUser.uid); 
 
           setUser(currentUser);
 
@@ -54,7 +54,7 @@ export function useAuth() {
           //  SI NO EXISTE → CREAR
           if (!userSnap.exists()) {
 
-            console.log("❌ NO EXISTE EN FIRESTORE → SE CREA COMO CLIENTE");
+            console.log(" NO EXISTE EN FIRESTORE → SE CREA COMO CLIENTE");
 
             await setDoc(userRef, {
               uid: currentUser.uid,
@@ -72,8 +72,8 @@ export function useAuth() {
 
             const data = userSnap.data();
 
-            console.log("📦 DATA FIRESTORE:", data); 
-            console.log("🎭 ROL DETECTADO:", data?.rol); 
+            console.log(" DATA FIRESTORE:", data); 
+            console.log(" ROL DETECTADO:", data?.rol); 
 
             if (data && typeof data.rol === "string") {
 
@@ -87,7 +87,7 @@ export function useAuth() {
 
             } else {
 
-              console.log("⚠️ ROL INVÁLIDO → cliente");
+              console.log(" ROL INVÁLIDO → cliente");
 
               setRol("cliente");
               setIsAdmin(false);
@@ -98,7 +98,7 @@ export function useAuth() {
 
         } else {
 
-          console.log("🚫 NO HAY USUARIO LOGUEADO");
+          console.log(" NO HAY USUARIO LOGUEADO");
 
           setUser(null);
           setRol("cliente");
@@ -108,7 +108,7 @@ export function useAuth() {
 
       } catch (error) {
 
-        console.error("💥 Error en useAuth:", error);
+        console.error(" Error en useAuth:", error);
 
         setRol("cliente");
         setIsAdmin(false);

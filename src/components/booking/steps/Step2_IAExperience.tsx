@@ -18,7 +18,7 @@ interface Props {
 }
 
 export default function Step2_IAExperience({ bookingData, setBookingData, onNext, onBack }: Props) {
-    const navigate = useNavigate(); // ✅ Hook para navegación
+    const navigate = useNavigate(); //  Hook para navegación
     const { user } = useAuth();
     const [showHelpModal, setShowHelpModal] = useState(false);
 
@@ -120,25 +120,48 @@ try {
 
     const downloadURL = await getDownloadURL(storageRef);
 
-    const idToken = await user.getIdToken();
+   
+const idToken = await user.getIdToken();
 
-    const iaResponse = await fetch(
-        "https://us-central1-barberia-ayan.cloudfunctions.net/detectFaceShape",
-        {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${idToken}`
-            },
-            body: JSON.stringify({ imageUrl: downloadURL })
-        }
-    );
+/* MEDIR TIEMPO IA */
+const start = performance.now();
 
-    if (!iaResponse.ok) {
-        throw new Error("Error en la IA");
-    }
+const iaResponse = await fetch(
+  "https://us-central1-barberia-ayan.cloudfunctions.net/detectFaceShape",
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${idToken}`
+    },
+    body: JSON.stringify({
+      imageUrl: downloadURL
+    })
+  }
+);
 
-    const iaResult = await iaResponse.json();
+if (!iaResponse.ok) {
+  throw new Error("Error en la IA");
+}
+
+const iaResult = await iaResponse.json();
+
+/* FIN MEDICION */
+const end = performance.now();
+
+const tiempoIA = (
+  (end - start) / 1000
+).toFixed(2);
+
+console.log(
+  `Tiempo IA: ${tiempoIA} segundos`
+);
+
+alert(
+  `Tiempo de análisis IA: ${tiempoIA} segundos`
+);
+
+
 
     const detectedShapeRaw = iaResult.faceShape || "Ovalado";
     const confidence = iaResult.confidence || 0.85;
@@ -317,7 +340,7 @@ try {
                                     className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-gray-300 transition-colors"
                                     aria-label="Ayuda: cómo funciona la IA"
                                 >
-                                    <span className="text-xl">❓</span>
+                                    <span className="text-xl"></span>
                                     <span>¿Cómo funciona?</span>
                                 </button>
                             </div>
